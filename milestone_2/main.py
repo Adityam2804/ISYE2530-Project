@@ -35,7 +35,13 @@ from src.database import (
 # Project paths
 # ---------------------------------------------------------
 
-DATA_PATH = Path("../milestone_1/dataset.xlsx")
+BASE_DIR = Path(__file__).resolve().parent
+
+DATA_PATH = (
+    BASE_DIR.parent
+    / "milestone_1"
+    / "dataset.xlsx"
+)
 
 OUTPUT_DIR = Path("outputs")
 
