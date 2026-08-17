@@ -1,50 +1,57 @@
 # Milestone 1 — Problem Definition, Dataset Approval, and Feasibility
 
-## Purpose
+## Goal
 
-Milestone 1 determines whether your proposed dataset and decision-support problem are suitable for the rest of the semester project.
+Before writing project code, demonstrate that your selected dataset can support the full ISE 2530 course-project workflow.
 
-There is **no required programming boilerplate** for this milestone.
+## Required files
 
-Your work is primarily structured documentation and dataset understanding.
-
-## Required submissions
-
-Complete all of the following files:
+Complete all five Markdown files:
 
 1. `project_proposal.md`
 2. `dataset_description.md`
 3. `data_dictionary.md`
 4. `decision_definition.md`
 5. `feasibility_preview.md`
-6. `ai_use_log.md`
 
-Also submit or link the proposed dataset according to instructor directions.
+## Required dataset
 
-## Approval rule
+Place your selected dataset in this folder and rename it exactly:
 
-Milestone 1 is an approval gate.
+```text
+dataset.xlsx
+```
 
-Your team should not begin full Milestone 2 implementation until the instructor approves:
+The instructor validation system expects that exact filename.
 
-- the dataset
-- the intended user
-- the recurring decision
-- the proposed relational direction
-- the feasibility of later milestone requirements
+- The submitted dataset must be an Excel `.xlsx` file.
+- If the public source provides CSV, save the approved data as `.xlsx` without manually changing values.
+- Keep the original public source URL documented in your Markdown files.
+- If the workbook contains multiple sheets, clearly identify which sheet is used.
 
-## What makes a suitable dataset?
+## How to complete the Markdown templates
 
-A suitable dataset should normally have:
+Instructions appear inside `<!-- HTML comments -->`. They normally do not appear when Markdown is rendered.
 
-- a clear real-world context
-- enough records for meaningful analysis
-- useful numeric and categorical fields
-- identifiable entities or keys
-- enough structure for relational modeling
-- meaningful data-quality issues
-- information that can support metrics
-- something that can reasonably be ranked, prioritized, compared, or reviewed
-- a decision that is actually supported by the available data
+Do not delete required headings. Replace blank response areas with your own answers.
 
-A date/time field is strongly preferred when naturally available. If the dataset does not contain one, explain why the dataset is still appropriate and what equivalent analysis could be performed.
+For tables, keep the header and separator rows, then add your own rows. Example:
+
+```markdown
+| Column | Meaning |
+|---|---|
+| CustomerID | Identifies a customer |
+| InvoiceDate | Date and time of purchase |
+```
+
+## Submission checklist
+
+- [ ] Dataset file is named exactly `dataset.xlsx`
+- [ ] All five Markdown files are complete
+- [ ] Dataset source and public URL are documented
+- [ ] Intended user is specific
+- [ ] Recurring decision is clearly stated
+- [ ] At least three candidate measures are identified
+- [ ] At least two meaningful relational tables are proposed
+- [ ] Important dataset limitations are acknowledged
+- [ ] Team has completed the feasibility judgment

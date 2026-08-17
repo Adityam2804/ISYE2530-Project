@@ -1,50 +1,13 @@
 # Milestone 2 Cleaning Report
 
-## Dataset
+Document each important cleaning rule.
 
-- Dataset:
-- Team:
-- Approved decision:
+| Cleaning rule | Why it is needed | Rows affected | Important consequence |
+|---|---|---:|---|
+|  |  |  |  |
 
-## Raw data summary
+## Large row removal
+If a rule removes a substantial portion of the dataset, explain why it is necessary for the approved project decision.
 
-Summarize the starting dataset.
-
-## Cleaning rules
-
-Document every important cleaning rule.
-
-| Issue | How detected | Cleaning decision | Why this decision is reasonable | Rows affected |
-|---|---|---|---|---:|
-|  |  |  |  |  |
-
-## Missing values
-
-Explain how missing values were handled.
-
-Do not assume that every missing value must be removed or filled.
-
-## Duplicate observations
-
-Explain how duplicates were defined and handled.
-
-## Invalid or inconsistent values
-
-Describe invalid ranges, labels, dates, codes, units, or other inconsistencies.
-
-## Rows removed
-
-- Raw rows:
-- Clean rows:
-- Rows removed:
-- Percentage removed:
-
-Explain any substantial reduction in rows.
-
-## Important values preserved
-
-Describe any unusual values that were intentionally retained and why.
-
-## Limitations after cleaning
-
-What data-quality limitations still remain?
+## Assumptions
+List assumptions used when resolving ambiguous codes, identifiers, dates, categories, or inconsistent records.

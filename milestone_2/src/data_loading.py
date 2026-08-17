@@ -1,7 +1,4 @@
-"""Milestone 2: Raw-data loading and inspection.
-
-Complete only the TODO sections. You may add helper functions.
-"""
+"""Milestone 2: raw-data loading and inspection."""
 
 from pathlib import Path
 import pandas as pd
@@ -9,16 +6,6 @@ import pandas as pd
 
 def load_raw_data(path):
     """Load the approved raw dataset.
-
-    Parameters
-    ----------
-    path : str or pathlib.Path
-        Path to the approved source file.
-
-    Returns
-    -------
-    pandas.DataFrame
-        Raw dataset.
 
     Requirements
     ------------
@@ -31,18 +18,8 @@ def load_raw_data(path):
 
 
 def inspect_raw_data(df):
-    """Summarize important raw-data characteristics.
-
-    Returns
-    -------
-    dict
-        Must contain at least:
-        - row_count
-        - column_count
-        - columns
-        - dtypes
-        - missing_by_column
-        - duplicate_rows
+    """Return a dict containing at least row_count, column_count, columns,
+    dtypes, missing_by_column, and duplicate_rows.
     """
     # TODO: implement
     raise NotImplementedError

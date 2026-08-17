@@ -1,0 +1,7 @@
+Replace this text file by placing your approved dataset in this folder.
+
+Required filename:
+
+dataset.xlsx
+
+Do not submit the project with this placeholder instead of the dataset.

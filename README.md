@@ -1,51 +1,55 @@
-# ISE 2530 Course Project — Student Starter Package
+# ISE 2530 Course Project — Student Starter Repository
 
-This starter package contains the student-facing materials for:
+This repository contains the guided course-project structure for ISE 2530.
 
-- **Milestone 1: Problem Definition, Dataset Approval, and Feasibility**
-- **Milestone 2: Data Cleaning and Database Formation**
+## Current milestone structure
 
-## Project philosophy
+- `milestone_1/` — Problem definition, dataset approval, and feasibility
+- `milestone_2/` — Data cleaning and relational database formation
+- `milestone_3/` — Analysis and decision support (to be developed next)
+- `milestone_4/` — Decision-support interface and evaluation (to be developed next)
 
-You choose the dataset and decision-support context. The course defines the workflow, required deliverables, function interfaces, and output expectations.
+## Important dataset rule
 
-You are expected to make and defend the dataset-specific choices. You are **not** expected to design a software project architecture from scratch.
-
-## Folder structure
+For Milestone 1, place the dataset selected by your team directly inside
+`milestone_1/` and rename the file exactly:
 
 ```text
-ISE2530_Student_Project_M1_M2/
-├── README.md
-├── PROJECT_RULES.md
-├── data/
-│   ├── raw/
-│   └── processed/
-├── milestone_1/
-│   ├── README.md
-│   ├── project_proposal.md
-│   ├── dataset_description.md
-│   ├── data_dictionary.md
-│   ├── decision_definition.md
-│   ├── feasibility_preview.md
-│   └── ai_use_log.md
-└── milestone_2/
-    ├── README.md
-    ├── cleaning_report.md
-    ├── validation_report.md
-    ├── src/
-    │   ├── __init__.py
-    │   ├── data_loading.py
-    │   ├── cleaning.py
-    │   ├── database.py
-    │   └── validation.py
-    ├── sql/
-    │   ├── schema.sql
-    │   └── required_queries.sql
-    ├── tests/
-    │   └── test_public.py
-    └── outputs/
+dataset.xlsx
 ```
 
-## Important rule
+Your folder should look like:
 
-Do not change required function names, parameter names, or return types unless the instructor explicitly approves the change.
+```text
+milestone_1/
+├── dataset.xlsx
+├── project_proposal.md
+├── dataset_description.md
+├── data_dictionary.md
+├── decision_definition.md
+└── feasibility_preview.md
+```
+
+Do not rename or replace the approved dataset after Milestone 1 without instructor approval.
+Milestone 2 uses the same approved file through `../milestone_1/dataset.xlsx`.
+
+## Markdown instructions
+
+The Milestone 1 files contain instructions inside HTML comments such as:
+
+```markdown
+<!--
+INSTRUCTIONS:
+Write 2–3 sentences here.
+Do not delete the section heading.
+-->
+```
+
+These comments are guidance for you. They are hidden when Markdown is rendered.
+
+When a table is provided:
+1. Keep the header row.
+2. Keep the separator row containing `---`.
+3. Replace the blank row with your own information.
+4. Add additional rows by copying the same row format.
+5. Do not change required column names.

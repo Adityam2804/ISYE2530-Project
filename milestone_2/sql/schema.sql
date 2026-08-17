@@ -1,8 +1,4 @@
 -- Milestone 2 relational schema
---
--- Replace the example placeholders below with the schema approved for
--- your project.
---
 -- Requirements:
 -- 1. Define meaningful tables.
 -- 2. Define primary keys where appropriate.
@@ -13,17 +9,3 @@
 PRAGMA foreign_keys = ON;
 
 -- TODO: define your project tables below.
-
--- Example structure only:
---
--- CREATE TABLE entity_a (
---     entity_a_id TEXT PRIMARY KEY,
---     attribute_1 TEXT
--- );
---
--- CREATE TABLE entity_b (
---     entity_b_id TEXT PRIMARY KEY,
---     entity_a_id TEXT,
---     numeric_value REAL,
---     FOREIGN KEY (entity_a_id) REFERENCES entity_a(entity_a_id)
--- );
