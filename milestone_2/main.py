@@ -1,39 +1,41 @@
-"""
-ISE 2530 Course Project
+"""ISE 2530 Course Project
 Milestone 2 - Interactive Runner
 
-This file is provided by the instructor.
+INSTRUCTOR-PROVIDED FILE.
+Students should not modify this file.
 
-DO NOT MODIFY THIS FILE.
+Behavior
+--------
+- Yes -> run/re-run that step
+- No  -> skip that step and continue
+- Existing outputs are reused when possible
 """
+
+from __future__ import annotations
 
 from pathlib import Path
 import json
+import sqlite3
+
+import pandas as pd
 
 from src.data_loading import (
     load_raw_data,
     inspect_raw_data,
 )
-
 from src.cleaning import (
     clean_data,
     split_into_tables,
 )
-
 from src.validation import (
     validate_clean_data,
     validate_database,
 )
-
 from src.database import (
     create_database,
     load_clean_data,
 )
 
-
-# ---------------------------------------------------------
-# Project paths
-# ---------------------------------------------------------
 
 BASE_DIR = Path(__file__).resolve().parent
 
@@ -43,95 +45,114 @@ DATA_PATH = (
     / "dataset.xlsx"
 )
 
-OUTPUT_DIR = Path("outputs")
+OUTPUT_DIR = BASE_DIR / "outputs"
 
 RAW_INSPECTION_PATH = (
-    OUTPUT_DIR / "raw_data_inspection.json"
+    OUTPUT_DIR
+    / "raw_data_inspection.json"
 )
 
 CLEANED_DATA_PATH = (
-    OUTPUT_DIR / "cleaned_data.csv"
+    OUTPUT_DIR
+    / "cleaned_data.csv"
 )
 
 CLEANING_SUMMARY_PATH = (
-    OUTPUT_DIR / "cleaning_summary.json"
+    OUTPUT_DIR
+    / "cleaning_summary.json"
 )
 
 TABLE_SUMMARY_PATH = (
-    OUTPUT_DIR / "table_summary.json"
+    OUTPUT_DIR
+    / "table_summary.json"
+)
+
+TABLE_OUTPUT_DIR = (
+    OUTPUT_DIR
+    / "tables"
 )
 
 CLEAN_DATA_VALIDATION_PATH = (
-    OUTPUT_DIR / "clean_data_validation.json"
+    OUTPUT_DIR
+    / "clean_data_validation.json"
 )
 
-SCHEMA_PATH = Path("sql/schema.sql")
+SCHEMA_PATH = (
+    BASE_DIR
+    / "sql"
+    / "schema.sql"
+)
 
 DATABASE_PATH = (
-    OUTPUT_DIR / "project.db"
+    OUTPUT_DIR
+    / "project.db"
 )
 
 DATABASE_LOAD_SUMMARY_PATH = (
-    OUTPUT_DIR / "database_load_summary.json"
+    OUTPUT_DIR
+    / "database_load_summary.json"
 )
+
 DATABASE_VALIDATION_PATH = (
     OUTPUT_DIR
     / "database_validation.json"
 )
-SQL_RESULTS_PATH = (
-    OUTPUT_DIR / "sql_results.json"
-)
 
 REQUIRED_QUERIES_PATH = (
-    Path("sql/required_queries.sql")
+    BASE_DIR
+    / "sql"
+    / "required_queries.sql"
 )
 
-# ---------------------------------------------------------
-# Helper functions
-# ---------------------------------------------------------
+SQL_RESULTS_PATH = (
+    OUTPUT_DIR
+    / "sql_results.json"
+)
+
 
 def ask_to_continue(message):
-    """Ask whether to execute the next step."""
-
+    """Ask yes/no. No means skip, not exit."""
     while True:
-
         answer = input(
             f"\n{message} [y/n]: "
         ).strip().lower()
 
-        if answer in {"y", "yes"}:
+        if answer in {
+            "y",
+            "yes",
+        }:
             return True
 
-        if answer in {"n", "no"}:
+        if answer in {
+            "n",
+            "no",
+        }:
             return False
 
-        print("Please enter 'y' or 'n'.")
-
-
-def save_json(data, path):
-    """Save a dictionary as formatted JSON."""
-
-    path.parent.mkdir(
-        parents=True,
-        exist_ok=True
-    )
-
-    with open(
-        path,
-        "w",
-        encoding="utf-8"
-    ) as file:
-
-        json.dump(
-            data,
-            file,
-            indent=4,
-            default=str
+        print(
+            "Please enter 'y' or 'n'."
         )
 
 
+def save_json(data, path):
+    """Save JSON evidence."""
+    path.parent.mkdir(
+        parents=True,
+        exist_ok=True,
+    )
+
+    path.write_text(
+        json.dumps(
+            data,
+            indent=4,
+            default=str,
+        ),
+        encoding="utf-8",
+    )
+
+
 def display_raw_summary(summary):
-    """Display raw-data inspection results."""
+    """Display concise raw-data inspection."""
 
     print("\n" + "=" * 60)
     print("RAW DATA SUMMARY")
@@ -147,122 +168,16 @@ def display_raw_summary(summary):
         f"{summary['column_count']}"
     )
 
-    print("\nColumns:")
-
-    for column in summary["columns"]:
-        print(f"  - {column}")
-
-    print("\nData Types:")
-
-    for column, dtype in summary["dtypes"].items():
-        print(
-            f"  {column}: {dtype}"
-        )
-
-    print("\nMissing Values:")
-
-    for column, count in (
-        summary["missing_by_column"].items()
-    ):
-        print(
-            f"  {column}: {count:,}"
-        )
-
     print(
-        f"\nDuplicate Rows: "
+        f"Duplicate rows: "
         f"{summary['duplicate_rows']:,}"
     )
 
-    print("\n" + "=" * 60)
-
-
-def build_cleaning_summary(
-    raw_df,
-    clean_df
-):
-    """Create a basic cleaning summary."""
-
-    raw_rows = len(raw_df)
-    clean_rows = len(clean_df)
-
-    rows_removed = (
-        raw_rows - clean_rows
-    )
-
-    percent_removed = (
-        rows_removed / raw_rows * 100
-        if raw_rows > 0
-        else 0
-    )
-
-    return {
-        "raw_rows": raw_rows,
-        "clean_rows": clean_rows,
-        "rows_removed": rows_removed,
-
-        "percent_removed": round(
-            percent_removed,
-            2
-        ),
-
-        "remaining_missing_by_column": {
-            column: int(count)
-            for column, count
-            in clean_df.isna().sum().items()
-        },
-
-        "remaining_duplicate_rows": int(
-            clean_df.duplicated().sum()
-        ),
-
-        "columns":
-            clean_df.columns.tolist(),
-
-        "dtypes": {
-            column: str(dtype)
-            for column, dtype
-            in clean_df.dtypes.items()
-        }
-    }
-
-
-def display_cleaning_summary(summary):
-    """Display cleaning results."""
-
-    print("\n" + "=" * 60)
-    print("CLEANING SUMMARY")
-    print("=" * 60)
-
-    print(
-        f"\nRaw rows: "
-        f"{summary['raw_rows']:,}"
-    )
-
-    print(
-        f"Clean rows: "
-        f"{summary['clean_rows']:,}"
-    )
-
-    print(
-        f"Rows removed: "
-        f"{summary['rows_removed']:,}"
-    )
-
-    print(
-        f"Percent removed: "
-        f"{summary['percent_removed']:.2f}%"
-    )
-
-    print(
-        f"\nRemaining duplicate rows: "
-        f"{summary['remaining_duplicate_rows']:,}"
-    )
-
-    print("\nRemaining missing values:")
+    print("\nMissing values:")
 
     for column, count in (
         summary[
-            "remaining_missing_by_column"
+            "missing_by_column"
         ].items()
     ):
         print(
@@ -272,42 +187,116 @@ def display_cleaning_summary(summary):
     print("\n" + "=" * 60)
 
 
-def save_tables(tables):
-    """Save relational tables as CSV files."""
+def build_cleaning_summary(
+    raw_df,
+    clean_df,
+):
+    """Build a concise cleaning summary."""
 
-    table_dir = (
-        OUTPUT_DIR
-        / "tables"
+    raw_rows = int(
+        len(raw_df)
     )
 
-    table_dir.mkdir(
+    clean_rows = int(
+        len(clean_df)
+    )
+
+    rows_removed = (
+        raw_rows - clean_rows
+    )
+
+    percent_removed = (
+        rows_removed / raw_rows * 100
+        if raw_rows
+        else 0
+    )
+
+    return {
+        "raw_rows":
+            raw_rows,
+
+        "clean_rows":
+            clean_rows,
+
+        "rows_removed":
+            rows_removed,
+
+        "percent_removed":
+            round(
+                percent_removed,
+                2,
+            ),
+
+        "remaining_missing_by_column": {
+            str(column): int(count)
+            for column, count
+            in clean_df.isna().sum().items()
+        },
+
+        "remaining_duplicate_rows":
+            int(
+                clean_df
+                .duplicated()
+                .sum()
+            ),
+
+        "columns":
+            [
+                str(column)
+                for column
+                in clean_df.columns
+            ],
+
+        "dtypes": {
+            str(column): str(dtype)
+            for column, dtype
+            in clean_df.dtypes.items()
+        },
+    }
+
+
+def save_tables(tables):
+    """Save relational DataFrames as CSV evidence."""
+
+    TABLE_OUTPUT_DIR.mkdir(
         parents=True,
-        exist_ok=True
+        exist_ok=True,
     )
 
     summary = {}
 
-    for table_name, table_df in tables.items():
-
+    for table_name, dataframe in (
+        tables.items()
+    ):
         output_path = (
-            table_dir
+            TABLE_OUTPUT_DIR
             / f"{table_name}.csv"
         )
 
-        table_df.to_csv(
+        dataframe.to_csv(
             output_path,
-            index=False
+            index=False,
         )
 
         summary[table_name] = {
             "row_count":
-                len(table_df),
+                int(
+                    len(dataframe)
+                ),
 
             "column_count":
-                len(table_df.columns),
+                int(
+                    len(
+                        dataframe.columns
+                    )
+                ),
 
             "columns":
-                table_df.columns.tolist(),
+                [
+                    str(column)
+                    for column
+                    in dataframe.columns
+                ],
 
             "output_file":
                 str(output_path),
@@ -316,286 +305,214 @@ def save_tables(tables):
     return summary
 
 
-def display_table_summary(summary):
-    """Display relational-table results."""
+def load_existing_tables():
+    """Reload relational tables based on table_summary.json."""
 
-    print("\n" + "=" * 60)
-    print("RELATIONAL TABLE SUMMARY")
-    print("=" * 60)
+    if not TABLE_SUMMARY_PATH.exists():
+        return None
 
-    for table_name, details in (
-        summary.items()
-    ):
-
-        print(
-            f"\nTable: {table_name}"
-        )
-
-        print(
-            f"  Rows: "
-            f"{details['row_count']:,}"
-        )
-
-        print(
-            f"  Columns: "
-            f"{details['column_count']}"
-        )
-
-        print(
-            "  Fields: "
-            + ", ".join(
-                details["columns"]
+    try:
+        summary = json.loads(
+            TABLE_SUMMARY_PATH.read_text(
+                encoding="utf-8"
             )
         )
+    except Exception:
+        return None
 
-        print(
-            f"  Saved to: "
-            f"{details['output_file']}"
-        )
+    tables = {}
 
-    print("\n" + "=" * 60)
-
-
-def display_clean_validation(result):
-    """Display clean-data validation."""
-
-    print("\n" + "=" * 60)
-    print("CLEAN DATA VALIDATION")
-    print("=" * 60)
-
-    print(
-        f"\nRaw rows: "
-        f"{result['raw_rows']:,}"
-    )
-
-    print(
-        f"Clean rows: "
-        f"{result['clean_rows']:,}"
-    )
-
-    print(
-        f"Rows removed: "
-        f"{result['rows_removed']:,}"
-    )
-
-    print(
-        f"Percent removed: "
-        f"{result['percent_removed']:.2f}%"
-    )
-
-    print(
-        f"\nRemaining duplicates: "
-        f"{result['remaining_duplicates']:,}"
-    )
-
-    print("\nValidation checks:")
-
-    for check_name, passed in (
-        result["checks"].items()
+    for table_name, information in (
+        summary.items()
     ):
-
-        status = (
-            "PASS"
-            if passed
-            else "FAIL"
+        output_file = Path(
+            information[
+                "output_file"
+            ]
         )
 
-        print(
-            f"  {status}: {check_name}"
+        if not output_file.is_absolute():
+            # Older runs may store a relative path.
+            candidate = (
+                BASE_DIR
+                / output_file
+            )
+
+            if candidate.exists():
+                output_file = candidate
+
+        if not output_file.exists():
+            fallback = (
+                TABLE_OUTPUT_DIR
+                / f"{table_name}.csv"
+            )
+
+            if fallback.exists():
+                output_file = fallback
+            else:
+                return None
+
+        tables[
+            table_name
+        ] = pd.read_csv(
+            output_file
         )
 
-    print("\nOverall validation:")
-
-    if result["validation_passed"]:
-        print("  ✓ PASSED")
-    else:
-        print("  ✗ FAILED")
-
-    print("\n" + "=" * 60)
+    return tables
 
 
-def display_database_load_summary(result):
-    """Display database loading results."""
+def _parse_numbered_sql(sql_path):
+    """Parse SQL below -- Q1., -- Q2., etc."""
 
-    print("\n" + "=" * 60)
-    print("DATABASE LOAD SUMMARY")
-    print("=" * 60)
-
-    print("\nTables loaded:")
-
-    for table_name in (
-        result["tables_loaded"]
-    ):
-        print(
-            f"  ✓ {table_name}"
-        )
-
-    print("\nRows loaded:")
-
-    for table_name, count in (
-        result["rows_loaded"].items()
-    ):
-        print(
-            f"  {table_name}: "
-            f"{count:,}"
-        )
-
-    print(
-        f"\nTotal rows loaded: "
-        f"{result['total_rows_loaded']:,}"
+    sql_text = Path(
+        sql_path
+    ).read_text(
+        encoding="utf-8"
     )
 
-    print("\n" + "=" * 60)
+    queries = []
+    current_name = None
+    current_description = ""
+    current_lines = []
 
+    for line in (
+        sql_text.splitlines()
+    ):
+        stripped = (
+            line.strip()
+        )
 
+        if stripped.startswith(
+            "-- Q"
+        ):
+            if (
+                current_name
+                and current_lines
+            ):
+                queries.append(
+                    {
+                        "name":
+                            current_name,
+
+                        "description":
+                            current_description,
+
+                        "sql":
+                            "\n".join(
+                                current_lines
+                            ).strip(),
+                    }
+                )
+
+            requirement = (
+                stripped[2:]
+                .strip()
+            )
+
+            parts = (
+                requirement
+                .split(
+                    ".",
+                    1,
+                )
+            )
+
+            current_name = (
+                parts[0]
+                .strip()
+            )
+
+            current_description = (
+                parts[1]
+                .strip()
+                if len(parts) > 1
+                else ""
+            )
+
+            current_lines = []
+            continue
+
+        if (
+            not stripped
+            or stripped.startswith(
+                "--"
+            )
+        ):
+            continue
+
+        if current_name:
+            current_lines.append(
+                line
+            )
+
+    if (
+        current_name
+        and current_lines
+    ):
+        queries.append(
+            {
+                "name":
+                    current_name,
+
+                "description":
+                    current_description,
+
+                "sql":
+                    "\n".join(
+                        current_lines
+                    ).strip(),
+            }
+        )
+
+    return queries
 
 
 def run_required_sql_queries(
     connection,
-    sql_path
+    sql_path,
 ):
-    """Execute SQL statements from required_queries.sql.
+    """Execute Q1-Q5 from required_queries.sql."""
 
-    Parameters
-    ----------
-    connection : sqlite3.Connection
-        Open SQLite database connection.
-
-    sql_path : str or pathlib.Path
-        Path to required_queries.sql.
-
-    Returns
-    -------
-    dict
-        Results for each SQL query, including the requirement description.
-    """
-
-    sql_path = Path(sql_path)
+    sql_path = Path(
+        sql_path
+    )
 
     if not sql_path.exists():
         raise FileNotFoundError(
             f"SQL file not found: {sql_path}"
         )
 
-    sql_text = sql_path.read_text(
-        encoding="utf-8"
+    queries = _parse_numbered_sql(
+        sql_path
     )
 
-    # -----------------------------------------------------
-    # Parse Q1, Q2, ... requirement comments and SQL
-    # -----------------------------------------------------
-
-    queries = []
-
-    current_name = None
-    current_description = None
-    current_sql_lines = []
-
-    for line in sql_text.splitlines():
-
-        stripped = line.strip()
-
-        # Ignore empty lines
-        if not stripped:
-            continue
-
-        # Detect requirement comments such as:
-        # -- Q1. Show the row count for each major table.
-        if stripped.startswith("-- Q"):
-
-            # Save the previous query before starting a new one
-            if (
-                current_name is not None
-                and current_sql_lines
-            ):
-
-                queries.append({
-                    "name": current_name,
-                    "description":
-                        current_description,
-                    "sql":
-                        "\n".join(
-                            current_sql_lines
-                        ).strip()
-                })
-
-            # Reset SQL lines
-            current_sql_lines = []
-
-            # Remove leading "--"
-            requirement_text = (
-                stripped[2:].strip()
-            )
-
-            # Split:
-            # Q1. Description...
-            parts = requirement_text.split(
-                ".",
-                1
-            )
-
-            current_name = (
-                parts[0].strip()
-            )
-
-            current_description = (
-                parts[1].strip()
-                if len(parts) > 1
-                else ""
-            )
-
-            continue
-
-        # Ignore other comments
-        if stripped.startswith("--"):
-            continue
-
-        # SQL belonging to current requirement
-        if current_name is not None:
-            current_sql_lines.append(
-                line
-            )
-
-    # Save final query
-    if (
-        current_name is not None
-        and current_sql_lines
-    ):
-
-        queries.append({
-            "name": current_name,
-            "description":
-                current_description,
-            "sql":
-                "\n".join(
-                    current_sql_lines
-                ).strip()
-        })
-
-    # -----------------------------------------------------
-    # Execute parsed queries
-    # -----------------------------------------------------
-
     results = {}
-
     cursor = connection.cursor()
 
     for query in queries:
-
-        query_name = query["name"]
-
-        description = (
-            query["description"]
-        )
-
+        name = query["name"]
         statement = (
             query["sql"]
             .rstrip(";")
             .strip()
         )
 
-        try:
+        if not statement:
+            results[name] = {
+                "description":
+                    query[
+                        "description"
+                    ],
 
+                "status":
+                    "FAIL",
+
+                "error":
+                    "No SQL statement provided.",
+            }
+            continue
+
+        try:
             cursor.execute(
                 statement
             )
@@ -604,7 +521,6 @@ def run_required_sql_queries(
             rows = []
 
             if cursor.description:
-
                 columns = [
                     column[0]
                     for column
@@ -617,9 +533,11 @@ def run_required_sql_queries(
                     in cursor.fetchall()
                 ]
 
-            results[query_name] = {
+            results[name] = {
                 "description":
-                    description,
+                    query[
+                        "description"
+                    ],
 
                 "status":
                     "PASS",
@@ -635,10 +553,11 @@ def run_required_sql_queries(
             }
 
         except Exception as error:
-
-            results[query_name] = {
+            results[name] = {
                 "description":
-                    description,
+                    query[
+                        "description"
+                    ],
 
                 "status":
                     "FAIL",
@@ -649,692 +568,658 @@ def run_required_sql_queries(
 
     return results
 
-def display_sql_results(results):
-    """Display results from required SQL checks."""
+
+def display_sql_results(
+    results,
+):
+    """Display first five rows of each SQL result."""
 
     print("\n" + "=" * 60)
     print("REQUIRED SQL CHECKS")
     print("=" * 60)
 
-    for query_name, result in results.items():
+    if not results:
+        print(
+            "\nNo SQL results were produced."
+        )
+        return
 
-        print(f"\n{query_name}")
-
-        # Display the SQL requirement
-        description = result.get(
-            "description",
-            "No description provided."
+    for query_name, result in (
+        results.items()
+    ):
+        print(
+            f"\n{query_name}"
         )
 
         print(
-            f"  Requirement: {description}"
+            "  Requirement: "
+            f"{result.get('description', '')}"
         )
 
         print(
-            f"  Status: {result['status']}"
+            "  Status: "
+            f"{result.get('status', 'UNKNOWN')}"
         )
 
-        if result["status"] == "FAIL":
-
-            print(
-                f"  Error: {result['error']}"
+        if (
+            result.get(
+                "status"
             )
-
+            == "FAIL"
+        ):
+            print(
+                "  Error: "
+                f"{result.get('error', '')}"
+            )
             continue
+
+        row_count = int(
+            result.get(
+                "row_count",
+                0,
+            )
+        )
 
         print(
             f"  Rows returned: "
-            f"{result['row_count']:,}"
+            f"{row_count:,}"
         )
 
         columns = result.get(
             "columns",
-            []
+            [],
         )
 
         if columns:
-
             print(
                 "  Columns: "
-                + ", ".join(columns)
+                + ", ".join(
+                    columns
+                )
             )
 
-        # Show only first five rows in terminal.
-        preview_rows = result.get(
+        preview = result.get(
             "rows",
-            []
+            [],
         )[:5]
 
-        if preview_rows:
+        if preview:
+            print(
+                "  Preview:"
+            )
 
-            print("  Preview:")
-
-            for row in preview_rows:
-
+            for row in preview:
                 print(
                     f"    {row}"
                 )
 
-        elif result["row_count"] == 0:
+            if row_count > 5:
+                print(
+                    f"    ... "
+                    f"{row_count - 5:,} "
+                    "more row(s)"
+                )
 
+        elif row_count == 0:
             print(
                 "  No rows returned."
             )
 
     print("\n" + "=" * 60)
 
-# ---------------------------------------------------------
-# Main execution
-# ---------------------------------------------------------
+
+def open_existing_database():
+    """Open existing project.db when available."""
+    if not DATABASE_PATH.exists():
+        return None
+
+    connection = sqlite3.connect(
+        DATABASE_PATH
+    )
+
+    connection.execute(
+        "PRAGMA foreign_keys = ON;"
+    )
+
+    return connection
+
 
 def main():
-
     print("=" * 60)
     print("ISE 2530 - MILESTONE 2")
     print("Data Cleaning and Database Formation")
     print("=" * 60)
 
-    print("\nDataset:")
-    print(DATA_PATH)
+    print(
+        f"\nDataset:"
+        f"\n  {DATA_PATH}"
+    )
 
     OUTPUT_DIR.mkdir(
         parents=True,
-        exist_ok=True
+        exist_ok=True,
     )
 
+    raw_df = None
+    clean_df = None
+    tables = None
+    connection = None
+
     # =====================================================
-    # STEP 1
-    # Load raw data
+    # STEP 1 — LOAD RAW DATA
     # =====================================================
 
-    if not ask_to_continue(
+    if ask_to_continue(
         "Step 1: Load the raw dataset?"
     ):
-        print("\nExecution stopped.")
-        return
+        try:
+            raw_df = load_raw_data(
+                DATA_PATH
+            )
 
-    try:
+            print(
+                f"\n[PASS] Loaded "
+                f"{len(raw_df):,} rows and "
+                f"{len(raw_df.columns)} columns."
+            )
 
-        raw_df = load_raw_data(
-            DATA_PATH
-        )
+        except Exception as error:
+            print(
+                "\n[FAIL] Step 1 - Load raw dataset"
+            )
+            print(error)
 
-    except Exception as error:
-
+    else:
         print(
-            "\nERROR while loading dataset:"
+            "\n[SKIPPED] Step 1 - Load raw dataset"
         )
 
-        print(error)
-
-        return
-
-    print(
-        "\n✓ Dataset loaded successfully."
-    )
-
     # =====================================================
-    # STEP 2
-    # Inspect raw data
+    # STEP 2 — INSPECT RAW DATA
     # =====================================================
 
-    if not ask_to_continue(
+    if ask_to_continue(
         "Step 2: Inspect the raw dataset?"
     ):
-        return
+        if raw_df is None:
+            try:
+                raw_df = load_raw_data(
+                    DATA_PATH
+                )
+            except Exception as error:
+                print(
+                    "\n[FAIL] Step 2 - "
+                    "Raw dataset is unavailable."
+                )
+                print(error)
 
-    try:
+        if raw_df is not None:
+            try:
+                raw_summary = inspect_raw_data(
+                    raw_df
+                )
 
-        raw_summary = (
-            inspect_raw_data(
-                raw_df
-            )
-        )
+                save_json(
+                    raw_summary,
+                    RAW_INSPECTION_PATH,
+                )
 
-    except Exception as error:
+                display_raw_summary(
+                    raw_summary
+                )
 
+                print(
+                    f"\n[PASS] Saved:"
+                    f"\n  {RAW_INSPECTION_PATH}"
+                )
+
+            except Exception as error:
+                print(
+                    "\n[FAIL] Step 2 - Inspect raw dataset"
+                )
+                print(error)
+
+    else:
         print(
-            "\nERROR while inspecting dataset:"
+            "\n[SKIPPED] Step 2 - Inspect raw dataset"
         )
 
-        print(error)
-
-        return
-
-    display_raw_summary(
-        raw_summary
-    )
-
-    save_json(
-        raw_summary,
-        RAW_INSPECTION_PATH
-    )
-
-    print(
-        f"\n✓ Saved: "
-        f"{RAW_INSPECTION_PATH}"
-    )
-
     # =====================================================
-    # STEP 3
-    # Clean data
+    # STEP 3 — CLEAN DATA
     # =====================================================
 
-    if not ask_to_continue(
+    if ask_to_continue(
         "Step 3: Clean the dataset?"
     ):
-        return
+        if raw_df is None:
+            try:
+                raw_df = load_raw_data(
+                    DATA_PATH
+                )
+            except Exception as error:
+                print(
+                    "\n[FAIL] Step 3 - "
+                    "Raw dataset is unavailable."
+                )
+                print(error)
 
-    try:
+        if raw_df is not None:
+            try:
+                clean_df = clean_data(
+                    raw_df
+                )
 
-        clean_df = clean_data(
-            raw_df
-        )
+                clean_df.to_csv(
+                    CLEANED_DATA_PATH,
+                    index=False,
+                )
 
-    except Exception as error:
+                cleaning_summary = (
+                    build_cleaning_summary(
+                        raw_df,
+                        clean_df,
+                    )
+                )
 
+                save_json(
+                    cleaning_summary,
+                    CLEANING_SUMMARY_PATH,
+                )
+
+                print(
+                    "\n[PASS] Cleaned data saved:"
+                )
+                print(
+                    f"  {CLEANED_DATA_PATH}"
+                )
+
+                print(
+                    "[PASS] Cleaning summary saved:"
+                )
+                print(
+                    f"  {CLEANING_SUMMARY_PATH}"
+                )
+
+            except Exception as error:
+                print(
+                    "\n[FAIL] Step 3 - Clean dataset"
+                )
+                print(error)
+
+    else:
         print(
-            "\nERROR while cleaning dataset:"
+            "\n[SKIPPED] Step 3 - Clean dataset"
         )
 
-        print(error)
+        if CLEANED_DATA_PATH.exists():
+            clean_df = pd.read_csv(
+                CLEANED_DATA_PATH
+            )
 
-        return
-
-    clean_df.to_csv(
-        CLEANED_DATA_PATH,
-        index=False
-    )
-
-    cleaning_summary = (
-        build_cleaning_summary(
-            raw_df,
-            clean_df
-        )
-    )
-
-    display_cleaning_summary(
-        cleaning_summary
-    )
-
-    save_json(
-        cleaning_summary,
-        CLEANING_SUMMARY_PATH
-    )
-
-    print(
-        f"\n✓ Saved: "
-        f"{CLEANED_DATA_PATH}"
-    )
-
-    print(
-        f"✓ Saved: "
-        f"{CLEANING_SUMMARY_PATH}"
-    )
+            print(
+                "[INFO] Existing cleaned data "
+                "will be reused."
+            )
 
     # =====================================================
-    # STEP 4
-    # Create relational tables
+    # STEP 4 — CREATE RELATIONAL TABLES
     # =====================================================
 
-    if not ask_to_continue(
+    if ask_to_continue(
         "Step 4: Create relational tables?"
     ):
-        return
+        if clean_df is None:
+            if CLEANED_DATA_PATH.exists():
+                clean_df = pd.read_csv(
+                    CLEANED_DATA_PATH
+                )
 
-    try:
+        if clean_df is None:
+            print(
+                "\n[SKIPPED] Step 4 - "
+                "No cleaned data is available."
+            )
+        else:
+            try:
+                tables = split_into_tables(
+                    clean_df
+                )
 
-        tables = split_into_tables(
-            clean_df
-        )
+                table_summary = save_tables(
+                    tables
+                )
 
-    except Exception as error:
+                save_json(
+                    table_summary,
+                    TABLE_SUMMARY_PATH,
+                )
 
+                print(
+                    "\n[PASS] Relational tables saved:"
+                )
+
+                for table_name, table_df in (
+                    tables.items()
+                ):
+                    print(
+                        f"  {table_name}: "
+                        f"{len(table_df):,} rows"
+                    )
+
+            except Exception as error:
+                print(
+                    "\n[FAIL] Step 4 - "
+                    "Create relational tables"
+                )
+                print(error)
+
+    else:
         print(
-            "\nERROR while creating "
-            "relational tables:"
+            "\n[SKIPPED] Step 4 - "
+            "Create relational tables"
         )
 
-        print(error)
+        tables = load_existing_tables()
 
-        return
-
-    table_summary = save_tables(
-        tables
-    )
-
-    display_table_summary(
-        table_summary
-    )
-
-    save_json(
-        table_summary,
-        TABLE_SUMMARY_PATH
-    )
-
-    print(
-        f"\n✓ Saved: "
-        f"{TABLE_SUMMARY_PATH}"
-    )
+        if tables is not None:
+            print(
+                "[INFO] Existing relational tables "
+                "will be reused."
+            )
 
     # =====================================================
-    # STEP 5
-    # Validate clean data
+    # STEP 5 — VALIDATE CLEANED DATA
     # =====================================================
 
-    if not ask_to_continue(
+    if ask_to_continue(
         "Step 5: Validate cleaned data?"
     ):
-        return
+        if raw_df is None:
+            try:
+                raw_df = load_raw_data(
+                    DATA_PATH
+                )
+            except Exception:
+                pass
 
-    try:
-
-        clean_validation = (
-            validate_clean_data(
-                raw_df,
-                clean_df
+        if (
+            clean_df is None
+            and CLEANED_DATA_PATH.exists()
+        ):
+            clean_df = pd.read_csv(
+                CLEANED_DATA_PATH
             )
-        )
 
-    except Exception as error:
+        if (
+            raw_df is None
+            or clean_df is None
+        ):
+            print(
+                "\n[SKIPPED] Step 5 - "
+                "Raw or cleaned data is unavailable."
+            )
+        else:
+            try:
+                validation = validate_clean_data(
+                    raw_df,
+                    clean_df,
+                )
 
+                save_json(
+                    validation,
+                    CLEAN_DATA_VALIDATION_PATH,
+                )
+
+                print(
+                    "\n[PASS] Clean-data validation completed."
+                )
+                print(
+                    "  validation_passed: "
+                    f"{validation.get('validation_passed')}"
+                )
+
+                for warning in validation.get(
+                    "warnings",
+                    [],
+                ):
+                    print(
+                        f"  [WARNING] {warning}"
+                    )
+
+            except Exception as error:
+                print(
+                    "\n[FAIL] Step 5 - "
+                    "Validate cleaned data"
+                )
+                print(error)
+
+    else:
         print(
-            "\nERROR while validating "
-            "cleaned data:"
+            "\n[SKIPPED] Step 5 - "
+            "Validate cleaned data"
         )
-
-        print(error)
-
-        return
-
-    display_clean_validation(
-        clean_validation
-    )
-
-    save_json(
-        clean_validation,
-        CLEAN_DATA_VALIDATION_PATH
-    )
-
-    print(
-        f"\n✓ Saved: "
-        f"{CLEAN_DATA_VALIDATION_PATH}"
-    )
-
-    if not clean_validation[
-        "validation_passed"
-    ]:
-
-        print(
-            "\nClean-data validation failed."
-        )
-
-        print(
-            "Correct the cleaning implementation "
-            "before database creation."
-        )
-
-        return
 
     # =====================================================
-    # STEP 6
-    # Create SQLite database
+    # STEP 6 — CREATE DATABASE
     # =====================================================
 
-    if not ask_to_continue(
+    if ask_to_continue(
         "Step 6: Create the SQLite database?"
     ):
-        return
+        try:
+            if connection is not None:
+                connection.close()
 
-    try:
-
-        connection = create_database(
-            DATABASE_PATH,
-            SCHEMA_PATH
-        )
-
-    except Exception as error:
-
-        print(
-            "\nERROR while creating database:"
-        )
-
-        print(error)
-
-        print(
-            "\nCheck schema.sql and "
-            "create_database()."
-        )
-
-        return
-
-    print(
-        "\n✓ SQLite database created."
-    )
-
-    print(
-        f"  {DATABASE_PATH}"
-    )
-
-    # =====================================================
-    # STEP 7
-    # Load relational tables
-    # =====================================================
-
-    if not ask_to_continue(
-        "Step 7: Load cleaned tables "
-        "into the database?"
-    ):
-
-        connection.close()
-        return
-
-    try:
-
-        database_load_summary = (
-            load_clean_data(
-                connection,
-                tables
+            connection = create_database(
+                DATABASE_PATH,
+                SCHEMA_PATH,
             )
-        )
 
-    except Exception as error:
+            print(
+                "\n[PASS] SQLite database created:"
+            )
+            print(
+                f"  {DATABASE_PATH}"
+            )
 
-        connection.close()
+        except Exception as error:
+            print(
+                "\n[FAIL] Step 6 - Create database"
+            )
+            print(error)
 
+    else:
         print(
-            "\nERROR while loading tables "
-            "into database:"
+            "\n[SKIPPED] Step 6 - Create database"
         )
 
-        print(error)
+        connection = open_existing_database()
 
-        print(
-            "\nCheck schema.sql and "
-            "load_clean_data()."
-        )
-
-        return
-
-    display_database_load_summary(
-        database_load_summary
-    )
-
-    save_json(
-        database_load_summary,
-        DATABASE_LOAD_SUMMARY_PATH
-    )
-
-    print(
-        f"\n✓ Saved: "
-        f"{DATABASE_LOAD_SUMMARY_PATH}"
-    )
+        if connection is not None:
+            print(
+                "[INFO] Existing database "
+                "will be reused."
+            )
 
     # =====================================================
-    # STEP 8
-    # Validate SQLite database
+    # STEP 7 — LOAD RELATIONAL TABLES
     # =====================================================
 
-    if not ask_to_continue(
+    if ask_to_continue(
+        "Step 7: Load relational tables into the database?"
+    ):
+        if tables is None:
+            tables = load_existing_tables()
+
+        if connection is None:
+            connection = open_existing_database()
+
+        if (
+            tables is None
+            or connection is None
+        ):
+            print(
+                "\n[SKIPPED] Step 7 - "
+                "Database or relational tables are unavailable."
+            )
+        else:
+            try:
+                load_summary = load_clean_data(
+                    connection,
+                    tables,
+                )
+
+                save_json(
+                    load_summary,
+                    DATABASE_LOAD_SUMMARY_PATH,
+                )
+
+                print(
+                    "\n[PASS] Relational tables loaded."
+                )
+
+                for table_name, count in (
+                    load_summary[
+                        "rows_loaded"
+                    ].items()
+                ):
+                    print(
+                        f"  {table_name}: "
+                        f"{count:,} rows"
+                    )
+
+            except Exception as error:
+                print(
+                    "\n[FAIL] Step 7 - Load database"
+                )
+                print(error)
+
+    else:
+        print(
+            "\n[SKIPPED] Step 7 - Load database"
+        )
+
+    # =====================================================
+    # STEP 8 — VALIDATE DATABASE
+    # =====================================================
+
+    if ask_to_continue(
         "Step 8: Validate the SQLite database?"
     ):
+        if connection is None:
+            connection = open_existing_database()
 
-        connection.close()
-        return
-
-    try:
-
-        database_validation = (
-            validate_database(
-                connection
-            )
-        )
-
-    except Exception as error:
-
-        connection.close()
-
-        print(
-            "\nERROR while validating database:"
-        )
-
-        print(error)
-
-        print(
-            "\nCheck your implementation of "
-            "validate_database() and schema.sql."
-        )
-
-        return
-
-    print(
-        "\n✓ Database validation completed."
-    )
-
-    # -----------------------------------------------------
-    # Display database validation results
-    # -----------------------------------------------------
-
-    print("\n" + "=" * 60)
-    print("DATABASE VALIDATION")
-    print("=" * 60)
-
-    print("\nTables:")
-
-    for table in database_validation["tables"]:
-        print(f"  - {table}")
-
-    print("\nRow counts:")
-
-    for table, count in (
-        database_validation[
-            "row_counts"
-        ].items()
-    ):
-
-        print(
-            f"  {table}: {count:,}"
-        )
-
-    print("\nValidation checks:")
-
-    for check_name, passed in (
-        database_validation[
-            "checks"
-        ].items()
-    ):
-
-        status = (
-            "PASS"
-            if passed
-            else "FAIL"
-        )
-
-        print(
-            f"  {status}: {check_name}"
-        )
-
-    print("\nForeign-key violations:")
-
-    fk_violations = (
-        database_validation[
-            "foreign_key_violations"
-        ]
-    )
-
-    if fk_violations:
-
-        for violation in fk_violations:
+        if connection is None:
             print(
-                f"  {violation}"
+                "\n[SKIPPED] Step 8 - "
+                "Database is unavailable."
             )
+        else:
+            try:
+                validation = validate_database(
+                    connection
+                )
+
+                save_json(
+                    validation,
+                    DATABASE_VALIDATION_PATH,
+                )
+
+                print(
+                    "\n[PASS] Database validation completed."
+                )
+                print(
+                    "  validation_passed: "
+                    f"{validation.get('validation_passed')}"
+                )
+
+                print(
+                    "  tables: "
+                    + ", ".join(
+                        validation.get(
+                            "tables",
+                            [],
+                        )
+                    )
+                )
+
+            except Exception as error:
+                print(
+                    "\n[FAIL] Step 8 - Validate database"
+                )
+                print(error)
 
     else:
-
-        print("  None")
-
-    print("\nOverall validation:")
-
-    if database_validation[
-        "validation_passed"
-    ]:
-
-        print("  ✓ PASSED")
-
-    else:
-
-        print("  ✗ FAILED")
-
-    print("\n" + "=" * 60)
-
-    # -----------------------------------------------------
-    # Save database validation output
-    # -----------------------------------------------------
-
-    DATABASE_VALIDATION_PATH = (
-        OUTPUT_DIR
-        / "database_validation.json"
-    )
-
-    save_json(
-        database_validation,
-        DATABASE_VALIDATION_PATH
-    )
-
-    print(
-        "\n✓ Database validation saved:"
-    )
-
-    print(
-        f"  {DATABASE_VALIDATION_PATH}"
-    )
-
-    # -----------------------------------------------------
-    # Stop if validation failed
-    # -----------------------------------------------------
-
-    if not database_validation[
-        "validation_passed"
-    ]:
-
         print(
-            "\nDatabase validation failed."
+            "\n[SKIPPED] Step 8 - Validate database"
         )
 
-        print(
-            "Review schema.sql, relational tables, "
-            "and database-loading logic."
-        )
+    # =====================================================
+    # STEP 9 — RUN REQUIRED SQL
+    # =====================================================
 
-        connection.close()
-        return
-
-    if not ask_to_continue(
+    if ask_to_continue(
         "Step 9: Run the required SQL checks?"
     ):
+        if connection is None:
+            connection = open_existing_database()
 
-        connection.close()
-        return
-
-
-    try:
-
-        sql_results = (
-            run_required_sql_queries(
-                connection,
-                REQUIRED_QUERIES_PATH
+        if connection is None:
+            print(
+                "\n[SKIPPED] Step 9 - "
+                "Database is unavailable."
             )
-        )
+        else:
+            try:
+                sql_results = run_required_sql_queries(
+                    connection,
+                    REQUIRED_QUERIES_PATH,
+                )
 
-    except Exception as error:
+                display_sql_results(
+                    sql_results
+                )
 
-        connection.close()
+                save_json(
+                    sql_results,
+                    SQL_RESULTS_PATH,
+                )
 
+                print(
+                    f"\n[PASS] SQL results saved:"
+                    f"\n  {SQL_RESULTS_PATH}"
+                )
+
+            except Exception as error:
+                print(
+                    "\n[FAIL] Step 9 - Run SQL checks"
+                )
+                print(error)
+
+    else:
         print(
-            "\nERROR while running "
-            "required SQL queries:"
+            "\n[SKIPPED] Step 9 - "
+            "Run required SQL checks"
         )
 
-        print(error)
-
-        print(
-            "\nCheck required_queries.sql."
-        )
-
-        return
-
-
-    print(
-        "\n✓ Required SQL checks completed."
-    )
-
-
-    display_sql_results(
-        sql_results
-    )
-
-
-    save_json(
-        sql_results,
-        SQL_RESULTS_PATH
-    )
-
-
-    print(
-        "\n✓ SQL results saved:"
-    )
-
-    print(
-        f"  {SQL_RESULTS_PATH}"
-    )
-
-
-    # -----------------------------------------------------
-    # Determine whether every query executed
-    # -----------------------------------------------------
-
-    sql_execution_passed = all(
-        result["status"] == "PASS"
-        for result
-        in sql_results.values()
-    )
-
-
-    if not sql_execution_passed:
-
-        print(
-            "\nOne or more SQL queries failed."
-        )
-
-        print(
-            "Review required_queries.sql "
-            "before completing Milestone 2."
-        )
-
-        connection.close()
-
-        return
-
-
-    connection.close()
-
-    # =====================================================
-    # Progress
-    # =====================================================
+    if connection is not None:
+        try:
+            connection.close()
+        except Exception:
+            pass
 
     print("\n" + "=" * 60)
-    print("MILESTONE 2 PROGRESS")
+    print("MILESTONE 2 WORKFLOW FINISHED")
     print("=" * 60)
 
-    print("✓ Step 1 - Raw data loaded")
-    print("✓ Step 2 - Raw data inspected")
-    print("✓ Step 3 - Data cleaned")
-    print("✓ Step 4 - Relational tables created")
-    print("✓ Step 5 - Clean data validated")
-    print("✓ Step 6 - SQLite database created")
-    print("✓ Step 7 - Tables loaded into database")
-    print("✓ Step 8 - Database validated")
-    print("✓ Step 9 - Required SQL checks executed")
+    print(
+        "\nAll Milestone 2 tasks have been offered."
+    )
+
+    print(
+        f"\nOutputs:"
+        f"\n  {OUTPUT_DIR}"
+    )
 
 
 if __name__ == "__main__":

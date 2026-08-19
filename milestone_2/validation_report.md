@@ -1,42 +1,49 @@
 # Milestone 2 Validation Report
 
-## Execution status
-
-- [ ] All required Python files run without errors
-- [ ] Public tests pass
-- [ ] Database is created successfully
-- [ ] Required tables are populated
+<!--
+Use the generated JSON outputs to summarize whether the cleaned data and
+database are technically usable.
+-->
 
 ## Clean-data validation
 
-Report:
+- Validation passed:
+- Raw rows:
+- Clean rows:
+- Rows removed:
+- Remaining exact duplicates:
 
-- raw row count:
-- clean row count:
-- remaining duplicate rows:
-- remaining missing values:
-- important range/category checks:
+### Remaining missing values
+
+<!--
+List important missing values that remain and explain whether they are acceptable.
+-->
+
+## Relational tables
+
+| Table | What it represents | Primary key | Important foreign key(s) |
+|---|---|---|---|
+|  |  |  |  |
 
 ## Database validation
 
-List all final tables and row counts.
-
-| Table | Rows | Primary key | Foreign keys |
-|---|---:|---|---|
-|  |  |  |  |
-
-## Referential integrity
-
-Report foreign-key violations, if any.
+- Validation passed:
+- Foreign-key violations:
+- Empty tables:
 
 ## Required SQL checks
 
-Briefly explain what each query in `required_queries.sql` demonstrates.
+| Query | Purpose | Passed? | What you learned |
+|---|---|---|---|
+| Q1 | Table counts | | |
+| Q2 | Identifier duplicates | | |
+| Q3 | JOIN | | |
+| Q4 | GROUP BY | | |
+| Q5 | Project-specific integrity | | |
 
-## Validation conclusion
+## Ready for Milestone 3?
 
-- [ ] Ready for Milestone 3
-- [ ] Ready with documented limitations
-- [ ] Requires correction before Milestone 3
-
-Explain:
+<!--
+Explain in 2-4 sentences whether project.db is trustworthy enough to support
+analysis in Milestone 3.
+-->

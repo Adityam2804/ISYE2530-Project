@@ -1,59 +1,63 @@
 # Milestone 3 Decision Rules
 
 <!--
-Document the exact logic used by rank_candidates() and
-generate_recommendations().
+Complete this file after your code works.
 
-The instructor should be able to understand your recommendation without reading
-your Python source code.
+Use plain language. Someone should understand the ranking without reading Python.
 -->
 
 ## Decision object
 
-What entity is being ranked or reviewed?
+<!--
+What entity is ranked/reviewed?
+Example types: customer, product, shipment, supplier, facility, case.
+-->
 
 ## Measures used
 
-| Measure | Formula / logic | Why it matters |
-|---|---|---|
-|  |  |  |
+<!--
+Add one row for each measure used in RANKING_COMPONENTS.
+-->
+
+| Measure | How calculated | Higher or lower is preferred? | Weight | Why it matters |
+|---|---|---|---:|---|
+|  |  |  |  |  |
 
 ## Ranking method
 
-Explain how `score_or_measure` and `rank` are produced.
+<!--
+Explain in 3-6 sentences:
+- which measures are combined
+- why you chose the weights
+- what a high score means
+- what the score does NOT mean
+-->
 
-If you combine multiple measures:
-- explain each component
-- explain scaling/normalization, if any
-- explain weights, if any
-- justify why the method is reasonable
+## Priority thresholds
 
-## Priority rules
-
-| Priority | Rule | Interpretation |
+| Priority | Score/rule | Meaning |
 |---|---|---|
 | High |  |  |
 | Medium |  |  |
 | Low |  |  |
+| Review |  |  |
 
-## Human-review rules
+## Human-review rule
 
-Explain when `requires_review = True`.
+<!--
+If you use REVIEW_FLAG_COLUMN, explain what it means.
+If not, explain why no automatic review flag was needed.
+-->
 
-Examples might include:
-- missing evidence
-- insufficient history
-- conflicting measures
-- data-quality concerns
+## Recommendation language
 
-## Recommendation rules
+<!--
+Explain why the actions are phrased as decision support rather than guaranteed
+outcomes.
+-->
 
-Explain how observed evidence becomes a suggested action.
+## Limitations
 
-Use the pattern:
-
-> observation → evidence → suggested action → expected benefit → limitation
-
-## Important limitations
-
-State what the rules cannot determine.
+<!--
+List at least two important limitations.
+-->

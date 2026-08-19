@@ -1,39 +1,52 @@
 # Milestone 3 Analysis Report
 
-## Approved decision
+<!-- Keep this report concise. -->
 
-Restate the intended user and recurring decision approved in Milestone 1.
+## Intended user and recurring decision
 
-## Analysis measures
+<!-- Restate the approved M1 user and decision. -->
 
-Summarize the measures implemented in `calculate_metrics()`.
+## Analysis-ready data
+
+<!--
+Which M2 tables did you use?
+What did your JOIN produce?
+What does one row in analysis_data represent?
+-->
+
+## Entity-level measures
+
+<!-- Describe the 3+ measures calculated for each decision object. -->
 
 ## Grouped comparison
 
-What groups were compared and what did you observe?
+<!-- What groups were compared? What useful pattern did you observe? -->
 
 ## Time-based analysis
 
-What time-based pattern was examined?
-
+<!--
+What did you examine over time?
 If an alternative was approved, explain it here.
+-->
 
-## Decision-relevant indicator
+## Analytical SQL
 
-Which measure most directly informs the recurring decision?
+<!--
+In 1-2 sentences each, explain what Q1-Q5 demonstrates.
+-->
+
+## Decision indicator
+
+<!-- Which measure is most directly connected to the recurring decision? -->
 
 ## Risk / exception indicator
 
-What condition signals uncertainty, risk, or need for human review?
+<!-- What suggests uncertainty or need for human review? -->
 
 ## Ranking interpretation
 
-What does a high rank mean?
-
-## Recommendation interpretation
-
-How should the intended user use these recommendations?
+<!-- What does a higher score/rank mean? -->
 
 ## Limitations
 
-What should the user NOT conclude from this analysis?
+<!-- What should the user NOT conclude from this analysis? -->
