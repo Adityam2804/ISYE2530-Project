@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Basic Git Guide</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 850px;
+      margin: 40px auto;
+      padding: 0 20px;
+      line-height: 1.6;
+      color: #222;
+    }
+    h1 {
+      color: #b31b1b;
+      margin-bottom: 6px;
+    }
+    h2 {
+      margin-top: 28px;
+      border-bottom: 1px solid #ddd;
+      padding-bottom: 5px;
+    }
+    .note {
+      background: #f7f7f7;
+      border-left: 4px solid #b31b1b;
+      padding: 10px 14px;
+      margin: 14px 0;
+    }
+    code {
+      background: #f1f1f1;
+      padding: 2px 5px;
+      border-radius: 4px;
+    }
+    pre {
+      background: #1f1f1f;
+      color: #f5f5f5;
+      padding: 12px 14px;
+      border-radius: 6px;
+      overflow-x: auto;
+    }
+    pre code {
+      background: transparent;
+      color: inherit;
+      padding: 0;
+      border-radius: 0;
+      font-family: Consolas, "Courier New", monospace;
+    }
+    .flow {
+      font-weight: bold;
+      text-align: center;
+      padding: 10px;
+      background: #fafafa;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Basic Git Guide</h1>
+
+  <h2>What is Git?</h2>
+  <p>
+    Git is a version-control tool used to keep track of changes made to project files.
+    It also allows you to download a project from GitHub and upload your updated work
+    back to the repository.
+  </p>
+
+  <p>This guide uses a simple <strong>single-branch workflow</strong>:</p>
+
+  <div class="flow">
+    Clone → Edit Files → Add → Commit → Push
+  </div>
+
+  <h2>1. Install Git</h2>
+
+  <p><strong>Windows:</strong></p>
+  <ol>
+    <li>Go to <a href="https://git-scm.com/download/win">git-scm.com/download/win</a>.</li>
+    <li>Download and run the Git installer.</li>
+    <li>For a basic installation, the default installer options are usually sufficient.</li>
+    <li>After installation, open Command Prompt, PowerShell, or Git Bash.</li>
+  </ol>
+
+  <p><strong>macOS:</strong></p>
+  <p>
+    Open Terminal and type:
+  </p>
+  <pre><code>git --version</code></pre>
+  <p>
+    If Git is not installed, macOS may prompt you to install the required developer tools.
+  </p>
+
+  <p>Verify that Git is installed:</p>
+  <pre><code>git --version</code></pre>
+
+  <p>You should see a Git version number.</p>
+
+  <h2>2. Clone the Project</h2>
+  <p>
+    You only need to clone the repository the first time you work on the project.
+    Cloning downloads the project from GitHub to your computer.
+  </p>
+
+  <p>For the ISYE 2530 project:</p>
+  <pre><code>git clone https://github.com/Adityam2804/ISYE2530-Project</code></pre>
+
+  <p>Then move into the downloaded project folder:</p>
+  <pre><code>cd ISYE2530-Project</code></pre>
+
+  <h2>3. Get the Latest Version</h2>
+  <p>
+    Before beginning new work, get the latest version of the project from GitHub:
+  </p>
+  <pre><code>git pull</code></pre>
+
+  <h2>4. Edit Your Project Files</h2>
+  <p>
+    Open the project in your preferred editor, such as VS Code, and complete the assigned work.
+  </p>
+
+  <h2>5. Check What Changed</h2>
+  <p>
+    Use the following command to see which files you changed:
+  </p>
+  <pre><code>git status</code></pre>
+
+  <h2>6. Add Your Changes</h2>
+  <p>Add all changed files:</p>
+  <pre><code>git add .</code></pre>
+
+  <p>Or add one specific file:</p>
+  <pre><code>git add filename.py</code></pre>
+
+  <h2>7. Commit Your Changes</h2>
+  <p>
+    A commit saves a snapshot of your changes. Use a short message explaining
+    what you completed.
+  </p>
+  <pre><code>git commit -m "Complete Milestone 1 tasks"</code></pre>
+
+  <h2>8. Push Your Changes</h2>
+  <p>
+    Push your committed changes to GitHub:
+  </p>
+  <pre><code>git push</code></pre>
+
+  <div class="note">
+    <strong>Typical workflow after the project has already been cloned:</strong>
+    <pre><code>git pull
+
+# Edit your project files
+
+git status
+git add .
+git commit -m "Describe your changes"
+git push</code></pre>
+  </div>
+
+  <h2>Important Notes</h2>
+  <ul>
+    <li>Work only on the assigned/default branch.</li>
+    <li>Do not create additional branches unless instructed.</li>
+    <li>Run <code>git pull</code> before starting new work.</li>
+    <li>Use clear commit messages.</li>
+    <li>Push your work after completing a meaningful set of changes.</li>
+  </ul>
+
+</body>
+</html>
