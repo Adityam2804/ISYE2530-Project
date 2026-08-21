@@ -1,56 +1,195 @@
-# Milestone 4 — Streamlit Decision-Support Interface and Evaluation
+# Milestone 4 — Decision-Support Interface and Evaluation
 
 ## Main question
 
-Can the intended user understand and interact with the evidence and
-recommendations produced in Milestone 3?
+**Can the intended user understand and interact with the evidence and
+recommendations produced in Milestone 3?**
 
-This milestone is intentionally heavily scaffolded. It is NOT a frontend
-engineering assignment.
+Milestone 4 is intentionally **heavily scaffolded**.
 
-## Inputs
+This is **not** a frontend-programming assignment.
 
-The app should use the standardized outputs from Milestone 3:
+The instructor provides:
+
+- the Streamlit page structure
+- loading of Milestone 3 outputs
+- summary-metric calculations
+- recommendation filtering
+- recommendation-detail display
+- visualization-data loading
+- interface validation
+- error handling
+- file paths
+
+Students mainly make **design and communication choices**.
+
+---
+
+## What students actually complete
+
+### 1. `project_config.py`
+
+This is the main student code/configuration file.
+
+You fill in:
+
+- project title
+- intended user
+- recurring decision
+- decision object
+- chart source
+- chart type
+- chart X column
+- chart Y column
+- chart title
+- 3–5 project-specific limitations
+
+You do **not** write Streamlit infrastructure.
+
+---
+
+### 2. `evaluation.md`
+
+Explain:
+
+- why the interface elements are useful
+- how you tested the interface
+- how your recommendation system compares with a simple baseline
+- important limitations
+- what the intended user should understand before using the tool
+
+---
+
+## What students normally do NOT modify
 
 ```text
-../milestone_3/outputs/analysis/
-../milestone_3/outputs/decision/
+app.py
+src/app_helpers.py
 ```
 
-At minimum, Milestone 3 should have produced:
+These are instructor-provided.
+
+---
+
+## Inputs from Milestone 3
+
+Milestone 4 reads:
 
 ```text
-ranked_candidates.csv
-recommendations.csv
-analysis_validation.json
-recommendation_validation.json
+milestone_3/
+└── outputs/
+    ├── analysis/
+    │   ├── analysis_summary.json
+    │   ├── entity_metrics.csv
+    │   ├── grouped_comparison.csv
+    │   ├── time_analysis.csv
+    │   └── analysis_validation.json
+    │
+    └── decision/
+        ├── ranked_candidates.csv
+        ├── recommendations.csv
+        └── recommendation_validation.json
 ```
 
-plus the project-specific analysis tables produced by `calculate_metrics()`.
+You should not manually recreate these files in Milestone 4.
 
-## Required interface
+---
 
-Your one-page Streamlit interface should contain:
+## Interface requirements
 
-1. Project / decision overview
-2. 2–4 useful summary metrics
-3. At least one meaningful visualization
-4. Ranked recommendations table
-5. At least one useful filter or scenario control
-6. Selected recommendation detail
+The provided app contains:
+
+1. Project overview
+2. Summary metrics
+3. One meaningful visualization
+4. Recommendation filters
+5. Ranked recommendation table
+6. Recommendation detail
 7. Evidence and limitation display
-8. Responsible-use statement
+8. Responsible-use section
+9. Interface-readiness check
 
-## Student work
+Your job is to configure these pieces for your project.
 
-Complete the TODO functions in `src/app_helpers.py`.
-
-Most Streamlit page structure is already provided in `app.py`.
+---
 
 ## Run
 
-From the `milestone_4` directory:
+From the project root:
+
+```bash
+streamlit run milestone_4/app.py
+```
+
+or from inside `milestone_4/`:
 
 ```bash
 streamlit run app.py
 ```
+
+---
+
+## Visualization guidance
+
+Choose one analysis output created in Milestone 3:
+
+```text
+grouped_comparison
+time_analysis
+entity_metrics
+```
+
+### Good chart choices
+
+Use `bar` when comparing categories.
+
+Examples:
+
+- volume by region
+- average delay by facility
+- records by priority group
+
+Use `line` for an ordered time series.
+
+Examples:
+
+- monthly activity
+- weekly service volume
+- average delay over time
+
+### Important
+
+The column names in `project_config.py` must exist in the selected
+Milestone 3 CSV file.
+
+The app will show available columns if your configuration is incorrect.
+
+---
+
+## Summary metrics
+
+The instructor-provided app automatically displays:
+
+- Records evaluated
+- High priority
+- Require review
+- Average score
+
+You do not need to write code for these metrics.
+
+---
+
+## What is NOT expected
+
+You are not expected to:
+
+- design a complex website
+- write HTML/CSS
+- create custom JavaScript
+- build authentication
+- build an API
+- deploy a production web service
+- build another analysis pipeline
+
+The focus is on **communicating decision-support evidence clearly and
+responsibly to an intended user**.

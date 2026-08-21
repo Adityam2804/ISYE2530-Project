@@ -1,15 +1,42 @@
-"""ISE 2530 Milestone 4 Streamlit starter application.
+"""ISE 2530 Milestone 4 Streamlit decision-support interface.
 
-Most page structure is provided. Students complete helper functions in
-src/app_helpers.py and customize only the clearly marked project-specific areas.
+INSTRUCTOR-PROVIDED FILE
+------------------------
+Students normally do NOT modify this file.
+
+Student customization belongs in:
+
+    project_config.py
 
 Run:
+
+    streamlit run milestone_4/app.py
+
+or, from inside milestone_4:
+
     streamlit run app.py
 """
 
+from __future__ import annotations
+
 from pathlib import Path
 
+import pandas as pd
 import streamlit as st
+
+from project_config import (
+    PROJECT_TITLE,
+    INTENDED_USER,
+    RECURRING_DECISION,
+    DECISION_OBJECT,
+    VISUALIZATION_SOURCE,
+    VISUALIZATION_TYPE,
+    VISUALIZATION_X,
+    VISUALIZATION_Y,
+    VISUALIZATION_TITLE,
+    LIMITATIONS,
+    SCORE_FILTER_LABEL,
+)
 
 from src.app_helpers import (
     load_project_outputs,
@@ -21,7 +48,9 @@ from src.app_helpers import (
 )
 
 
-APP_DIR = Path(__file__).resolve().parent
+APP_DIR = Path(
+    __file__
+).resolve().parent
 
 DEFAULT_ANALYSIS_DIR = (
     APP_DIR.parent
@@ -38,28 +67,126 @@ DEFAULT_DECISION_DIR = (
 )
 
 
+def _contains_student_todo(
+    value,
+) -> bool:
+    """Return True when required config still contains TODO text."""
+    return (
+        "STUDENT TODO"
+        in str(value)
+    )
+
+
+def validate_student_config():
+    """Check required project_config.py values before rendering."""
+
+    required_text = {
+        "PROJECT_TITLE":
+            PROJECT_TITLE,
+
+        "INTENDED_USER":
+            INTENDED_USER,
+
+        "RECURRING_DECISION":
+            RECURRING_DECISION,
+
+        "DECISION_OBJECT":
+            DECISION_OBJECT,
+
+        "VISUALIZATION_SOURCE":
+            VISUALIZATION_SOURCE,
+
+        "VISUALIZATION_TYPE":
+            VISUALIZATION_TYPE,
+
+        "VISUALIZATION_X":
+            VISUALIZATION_X,
+
+        "VISUALIZATION_Y":
+            VISUALIZATION_Y,
+
+        "VISUALIZATION_TITLE":
+            VISUALIZATION_TITLE,
+    }
+
+    incomplete = [
+        name
+        for name, value
+        in required_text.items()
+        if (
+            not str(
+                value
+            ).strip()
+            or _contains_student_todo(
+                value
+            )
+        )
+    ]
+
+    if incomplete:
+        raise ValueError(
+            "Complete these values in project_config.py: "
+            + ", ".join(
+                incomplete
+            )
+        )
+
+    if VISUALIZATION_TYPE not in {
+        "bar",
+        "line",
+    }:
+        raise ValueError(
+            "VISUALIZATION_TYPE must be 'bar' or 'line'."
+        )
+
+
 st.set_page_config(
-    page_title="ISE 2530 Decision Support",
+    page_title=(
+        PROJECT_TITLE
+        if not _contains_student_todo(
+            PROJECT_TITLE
+        )
+        else "ISE 2530 Decision Support"
+    ),
     page_icon="📊",
     layout="wide",
 )
 
 
 # ============================================================
+# CONFIGURATION CHECK
+# ============================================================
+
+try:
+    validate_student_config()
+
+except Exception as error:
+    st.error(
+        f"Project configuration is incomplete: {error}"
+    )
+
+    st.info(
+        "Open milestone_4/project_config.py "
+        "and complete the STUDENT TODO values."
+    )
+
+    st.stop()
+
+
+# ============================================================
 # HEADER
 # ============================================================
 
-st.title("Decision-Support Dashboard")
+st.title(
+    PROJECT_TITLE
+)
 
-# STUDENT TODO:
-# Replace the text below with your approved M1 project title,
-# intended user, and recurring decision.
 st.caption(
-    "Replace this caption with a concise description of your project."
+    f"Decision-support interface for {INTENDED_USER}"
 )
 
 st.info(
-    "This tool supports human decision making. "
+    "This interface supports human decision making. "
     "Recommendations should be reviewed before action."
 )
 
@@ -69,19 +196,25 @@ st.info(
 # ============================================================
 
 with st.sidebar:
-    st.header("Data")
+    st.header(
+        "Data"
+    )
 
     analysis_dir = Path(
         st.text_input(
             "Milestone 3 analysis directory",
-            value=str(DEFAULT_ANALYSIS_DIR),
+            value=str(
+                DEFAULT_ANALYSIS_DIR
+            ),
         )
     )
 
     decision_dir = Path(
         st.text_input(
             "Milestone 3 decision directory",
-            value=str(DEFAULT_DECISION_DIR),
+            value=str(
+                DEFAULT_DECISION_DIR
+            ),
         )
     )
 
@@ -91,8 +224,12 @@ try:
         analysis_dir,
         decision_dir,
     )
+
 except Exception as error:
-    st.error(f"Unable to load Milestone 3 outputs: {error}")
+    st.error(
+        f"Unable to load Milestone 3 outputs: {error}"
+    )
+
     st.stop()
 
 
@@ -100,64 +237,137 @@ except Exception as error:
 # 1. PROJECT OVERVIEW
 # ============================================================
 
-st.header("1. Project overview")
+st.header(
+    "1. Project overview"
+)
 
-# STUDENT TODO:
-# Replace these three lines with your approved M1 information.
-st.write("**Intended user:** [replace]")
-st.write("**Recurring decision:** [replace]")
-st.write("**Decision object:** [replace]")
+st.write(
+    f"**Intended user:** "
+    f"{INTENDED_USER}"
+)
+
+st.write(
+    f"**Recurring decision:** "
+    f"{RECURRING_DECISION}"
+)
+
+st.write(
+    f"**Decision object:** "
+    f"{DECISION_OBJECT}"
+)
 
 
 # ============================================================
 # 2. SUMMARY METRICS
 # ============================================================
 
-st.header("2. Summary metrics")
+st.header(
+    "2. Summary metrics"
+)
 
 try:
-    summary_metrics = build_summary_metrics(outputs)
+    summary_metrics = (
+        build_summary_metrics(
+            outputs
+        )
+    )
+
 except Exception as error:
-    st.error(f"Unable to build summary metrics: {error}")
+    st.error(
+        f"Unable to build summary metrics: {error}"
+    )
     st.stop()
 
-metric_items = list(summary_metrics.items())
 
-if not metric_items:
-    st.warning("No summary metrics were produced.")
-else:
-    metric_columns = st.columns(min(4, len(metric_items)))
+metric_items = list(
+    summary_metrics.items()
+)
 
-    for index, (label, value) in enumerate(metric_items[:4]):
-        metric_columns[index].metric(
-            label,
-            value,
-        )
+metric_columns = st.columns(
+    len(
+        metric_items
+    )
+)
+
+for index, (
+    label,
+    value,
+) in enumerate(
+    metric_items
+):
+    metric_columns[
+        index
+    ].metric(
+        label,
+        value,
+    )
 
 
 # ============================================================
 # 3. ANALYSIS VISUALIZATION
 # ============================================================
 
-st.header("3. Analysis")
+st.header(
+    "3. Analysis"
+)
+
+st.subheader(
+    VISUALIZATION_TITLE
+)
 
 try:
-    visualization_data = build_visualization_data(outputs)
+    visualization_data = (
+        build_visualization_data(
+            outputs,
+            VISUALIZATION_SOURCE,
+            VISUALIZATION_X,
+            VISUALIZATION_Y,
+        )
+    )
+
 except Exception as error:
-    st.error(f"Unable to build visualization data: {error}")
+    st.error(
+        f"Unable to build visualization: {error}"
+    )
+
+    st.info(
+        "Check the selected source and column names "
+        "in project_config.py."
+    )
+
     st.stop()
 
-if visualization_data is None or visualization_data.empty:
-    st.warning("No visualization data is available.")
-else:
-    # STUDENT TODO:
-    # Choose ONE chart that is meaningful for your project.
-    #
-    # Examples:
-    # st.bar_chart(visualization_data.set_index("group")["value"])
-    # st.line_chart(visualization_data.set_index("date")["value"])
-    #
-    # Replace the generic table below with your selected visualization.
+
+chart_data = (
+    visualization_data
+    .set_index(
+        VISUALIZATION_X
+    )[
+        VISUALIZATION_Y
+    ]
+)
+
+
+if (
+    VISUALIZATION_TYPE
+    == "bar"
+):
+    st.bar_chart(
+        chart_data
+    )
+
+elif (
+    VISUALIZATION_TYPE
+    == "line"
+):
+    st.line_chart(
+        chart_data
+    )
+
+
+with st.expander(
+    "Show chart data"
+):
     st.dataframe(
         visualization_data,
         use_container_width=True,
@@ -166,65 +376,107 @@ else:
 
 
 # ============================================================
-# 4. RECOMMENDATION FILTERS
+# 4. RECOMMENDATIONS
 # ============================================================
 
-st.header("4. Recommendations")
+st.header(
+    "4. Recommendations"
+)
 
-recommendations = outputs["recommendations"]
+recommendations = outputs[
+    "recommendations"
+]
 
-priority_options = sorted(
-    recommendations["priority"]
-    .dropna()
-    .astype(str)
-    .unique()
-    .tolist()
-) if "priority" in recommendations.columns else []
+priority_options = (
+    sorted(
+        recommendations[
+            "priority"
+        ]
+        .dropna()
+        .astype(str)
+        .unique()
+        .tolist()
+    )
+    if "priority"
+    in recommendations.columns
+    else []
+)
 
-filter_col1, filter_col2 = st.columns(2)
+
+filter_col1, filter_col2 = (
+    st.columns(
+        2
+    )
+)
+
 
 with filter_col1:
-    selected_priorities = st.multiselect(
-        "Priority",
-        options=priority_options,
-        default=priority_options,
+    selected_priorities = (
+        st.multiselect(
+            "Priority",
+            options=priority_options,
+            default=priority_options,
+        )
     )
 
-    review_only = st.checkbox(
-        "Show only recommendations requiring human review"
+    review_only = (
+        st.checkbox(
+            "Show only records requiring human review"
+        )
     )
+
 
 with filter_col2:
+    minimum_score = None
+
     if (
-        "score_or_measure" in recommendations.columns
+        "score_or_measure"
+        in recommendations.columns
         and not recommendations.empty
     ):
-        max_score = float(
-            recommendations["score_or_measure"]
-            .fillna(0)
-            .max()
+        numeric_scores = pd.to_numeric(
+            recommendations[
+                "score_or_measure"
+            ],
+            errors="coerce",
         )
 
-        minimum_score = st.number_input(
-            "Minimum score",
-            min_value=0.0,
-            max_value=max(0.0, max_score),
-            value=0.0,
+        max_score = (
+            float(
+                numeric_scores.max()
+            )
+            if numeric_scores.notna().any()
+            else 0.0
         )
-    else:
-        minimum_score = None
+
+        minimum_score = (
+            st.number_input(
+                SCORE_FILTER_LABEL,
+                min_value=0.0,
+                max_value=max(
+                    0.0,
+                    max_score,
+                ),
+                value=0.0,
+                step=1.0,
+            )
+        )
 
 
-try:
-    filtered = filter_recommendations(
+filtered = (
+    filter_recommendations(
         recommendations,
-        selected_priorities=selected_priorities,
-        review_only=review_only,
-        minimum_score=minimum_score,
+        selected_priorities=(
+            selected_priorities
+        ),
+        review_only=(
+            review_only
+        ),
+        minimum_score=(
+            minimum_score
+        ),
     )
-except Exception as error:
-    st.error(f"Unable to filter recommendations: {error}")
-    st.stop()
+)
 
 
 display_columns = [
@@ -236,17 +488,23 @@ display_columns = [
         "score_or_measure",
         "requires_review",
     ]
-    if column in filtered.columns
+    if column
+    in filtered.columns
 ]
 
+
 st.dataframe(
-    filtered[display_columns],
+    filtered[
+        display_columns
+    ],
     use_container_width=True,
     hide_index=True,
 )
 
+
 st.caption(
-    f"{len(filtered):,} recommendation(s) displayed"
+    f"{len(filtered):,} "
+    "recommendation(s) displayed"
 )
 
 
@@ -254,139 +512,175 @@ st.caption(
 # 5. RECOMMENDATION DETAIL
 # ============================================================
 
-st.header("5. Recommendation detail")
+st.header(
+    "5. Recommendation detail"
+)
+
 
 if filtered.empty:
     st.warning(
         "No recommendation matches the current filters."
     )
+
 else:
-    record_options = (
-        filtered["record_id"]
+    record_ids = (
+        filtered[
+            "record_id"
+        ]
         .astype(str)
         .tolist()
     )
 
-    selected_record_id = st.selectbox(
-        "Select a record",
-        record_options,
+    selected_record_id = (
+        st.selectbox(
+            "Select a record",
+            options=record_ids,
+        )
     )
 
-    selected_record = filtered[
-        filtered["record_id"].astype(str)
-        == str(selected_record_id)
-    ].iloc[0]
+    selected_record = (
+        filtered[
+            filtered[
+                "record_id"
+            ]
+            .astype(str)
+            == str(
+                selected_record_id
+            )
+        ]
+        .iloc[0]
+    )
 
-    try:
-        detail = build_recommendation_detail(
+    detail = (
+        build_recommendation_detail(
             selected_record
         )
-    except Exception as error:
-        st.error(
-            f"Unable to build recommendation detail: {error}"
-        )
-        st.stop()
+    )
 
-    left, right = st.columns(2)
+    left, right = (
+        st.columns(
+            2
+        )
+    )
 
     with left:
         st.write(
             f"**Record ID:** "
-            f"{detail.get('record_id')}"
+            f"{detail['record_id']}"
         )
 
         st.write(
             f"**Priority:** "
-            f"{detail.get('priority')}"
+            f"{detail['priority']}"
         )
 
         st.write(
             f"**Score / measure:** "
-            f"{detail.get('score_or_measure')}"
+            f"{detail['score_or_measure']}"
         )
 
         st.write(
             f"**Requires human review:** "
-            f"{detail.get('requires_review')}"
+            f"{detail['requires_review']}"
         )
 
     with right:
-        st.write("**Recommended action**")
         st.write(
-            detail.get(
+            "**Recommended action**"
+        )
+
+        st.write(
+            detail[
                 "recommended_action"
-            )
+            ]
         )
 
-    st.write("**Evidence**")
     st.write(
-        detail.get(
+        "**Evidence**"
+    )
+
+    st.write(
+        detail[
             "evidence"
-        )
+        ]
     )
 
-    st.write("**Expected benefit**")
     st.write(
-        detail.get(
+        "**Expected benefit**"
+    )
+
+    st.write(
+        detail[
             "expected_benefit"
-        )
+        ]
     )
 
-    st.write("**Limitation**")
     st.write(
-        detail.get(
+        "**Limitation**"
+    )
+
+    st.write(
+        detail[
             "limitation"
-        )
+        ]
     )
 
 
 # ============================================================
-# 6. LIMITATIONS / RESPONSIBLE USE
+# 6. LIMITATIONS AND RESPONSIBLE USE
 # ============================================================
 
-st.header("6. Limitations and responsible use")
+st.header(
+    "6. Limitations and responsible use"
+)
 
-# STUDENT TODO:
-# Replace this generic text with 3–5 limitations from your own project.
-st.warning(
-    """
-    - Recommendations are based on the available historical data.
-    - Missing or incomplete information may affect interpretation.
-    - Ranking is a decision-support aid, not an automatic final decision.
-    - A human user should review the supporting evidence before action.
-    """
+
+for limitation in LIMITATIONS:
+    st.warning(
+        limitation
+    )
+
+
+st.caption(
+    "The final decision remains with the intended human user."
 )
 
 
 # ============================================================
-# 7. INTERFACE READINESS CHECK
+# 7. INTERFACE READINESS
 # ============================================================
 
-st.header("7. Interface readiness")
+st.header(
+    "7. Interface readiness"
+)
 
-try:
-    interface_evaluation = evaluate_interface(
-        outputs
-    )
-except Exception as error:
-    st.error(
-        f"Unable to evaluate interface readiness: {error}"
-    )
-    st.stop()
 
-if interface_evaluation.get(
+evaluation = (
+    evaluate_interface(
+        outputs,
+        visualization_data,
+        LIMITATIONS,
+    )
+)
+
+
+if evaluation.get(
     "validation_passed",
     False,
 ):
     st.success(
         "Milestone 4 interface data checks passed."
     )
+
 else:
     st.warning(
         "Milestone 4 interface data checks require review."
     )
 
+
 with st.expander(
     "Show interface evaluation details"
 ):
-    st.json(interface_evaluation)
+    st.json(
+        evaluation
+    )
